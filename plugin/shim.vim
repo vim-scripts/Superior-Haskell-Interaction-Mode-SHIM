@@ -71,7 +71,7 @@ if !exists('g:shim_ghciInterp')
     let g:shim_ghciInterp = "ghci"
 endif
 if !exists('g:shim_ghciPrompt')
-    let g:shim_ghciPrompt = "^[^<>\n-]*>"
+    let g:shim_ghciPrompt = "^[^<>\n-\'\"]+>"
 endif
 if !exists('g:shim_ghciTimeout')
     let g:shim_ghciTimeout = 10
