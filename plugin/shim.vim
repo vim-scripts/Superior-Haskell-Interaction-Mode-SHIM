@@ -1,21 +1,23 @@
 " Superior Haskell Interaction Mode (SHIM) {{{
 " ===============================================================================
-" Copyright: Lars Kotthoff <lars@larsko.org> 2008
+" Copyright: Lars Kotthoff <lars@larsko.org> 2008,2009
 "            Released under the terms of the GPLv3
 "            (http://www.gnu.org/copyleft/gpl.html)
 " Name Of File: shim.vim
-" Version: 0.1
+" Version: 0.2
 " Description: GHCi integration for VIM
 " Requirements: VIM or gVIM with Ruby support, Ruby, and GHCi.
 " Installation: Copy this file into the plugin/ subdirectory of your vim
 "               installation -- /etc/vim/ for system-wide installation,
 "               .vim/ for user installation. Alternatively, you can manually
 "               source the file with ":source shim.vim".
-" Usage: The file exposes 2 commands, GhciFile and GhciRange. The first takes no
-"        arguments and loads the current buffer into GHCi (":l <file>"). If
-"        autowrite is set and the buffer has been modified, the buffer is
-"        written before it is loaded. The second command takes a range as an
-"        argument and pastes these lines into GHCi without any interpretation.
+" Usage: The file exposes 3 commands, GhciFile, GhciRange, and GhciReload. The
+"        first takes no arguments and loads the current buffer into GHCi (":l
+"        <file>"). If autowrite is set and the buffer has been modified, the
+"        buffer is written before it is loaded. The second command takes a range
+"        as an argument and pastes these lines into GHCi without any
+"        interpretation. The third command kills GHCi, clears the ghci buffer,
+"        and restarts GHCi. Note that it doesn't reload any files.
 "
 "        You can bind these functions to key combinations for quicker access,
 "        e.g. put something like
@@ -23,6 +25,7 @@
 "        autocmd FileType haskell nmap <C-c><C-l> :GhciRange<CR>
 "        autocmd FileType haskell vmap <C-c><C-l> :GhciRange<CR>
 "        autocmd FileType haskell nmap <C-c><C-f> :GhciFile<CR>
+"        autocmd FileType haskell nmap <C-c><C-r> :GhciReload<CR>
 "
 "        into your .vimrc or .gvimrc.
 "
@@ -31,8 +34,7 @@
 "        customize the following options:
 "
 "        g:shim_ghciInterp -- the name of the GHCi executable, default "ghci"
-"        g:shim_ghciPrompt -- a regular expression matching the GHCi prompt,
-"                             default "^[^<>\n-]*>"
+"        g:shim_ghciPrompt -- a regular expression matching the GHCi prompt
 "        g:shim_ghciTimeout -- the timeout for waiting for GHCi to return after
 "                              sending commands, default 10 seconds
 "        g:shim_jumpToGhci -- whether to jump to the GHCi window after executing
@@ -71,7 +73,7 @@ if !exists('g:shim_ghciInterp')
     let g:shim_ghciInterp = "ghci"
 endif
 if !exists('g:shim_ghciPrompt')
-    let g:shim_ghciPrompt = "^[^<>\n-\'\"]+>"
+    let g:shim_ghciPrompt = "^[\*A-Z][A-Za-z\. ]+>"
 endif
 if !exists('g:shim_ghciTimeout')
     let g:shim_ghciTimeout = 10
@@ -86,6 +88,7 @@ if !exists('g:shim_defaultWindowSize')
     let g:shim_defaultWindowSize = 15
 endif
 
+command! GhciReload ruby ghci.reloadGhci
 command! GhciFile ruby ghci.ghciSourceFile
 command! -range GhciRange ruby ghci.writeRangeToGhci(<line1>, <line2>)
 
@@ -149,10 +152,14 @@ class Ghci
 
 	def initGhciBuffer
 		setupWindow
+        openGhci
+	end
+
+    def openGhci
 		# ghci writes some stuff to stderr...
 		@pipe = IO.popen(@ghciInterp + " 2>&1", File::RDWR)
 		readFromGhci
-	end
+    end
 
 	def closeGhci
 		if(!@pipe.nil?)
@@ -161,6 +168,16 @@ class Ghci
 			@pipe = nil
 		end
 	end
+
+    def reloadGhci
+		if(@pipe.nil?)
+            openGhci
+        else
+            closeGhci
+            @buffer.length.times { @buffer.delete(1) }
+            openGhci
+        end
+    end
 
 	def readFromGhci
 		if(!@buffer.nil? && !@pipe.nil?)
@@ -197,7 +214,7 @@ class Ghci
 	def writeToGhci(text)
 		text.strip!
 		if(text.length > 0)
-			initGhciBuffer if @pipe.nil?
+			initGhciBuffer if @buffer.nil?
 
 			if(!@buffer.nil? && !@pipe.nil?)
                                 # if the input matches the prompt, it was typed
