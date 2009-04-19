@@ -4,7 +4,7 @@
 "            Released under the terms of the GPLv3
 "            (http://www.gnu.org/copyleft/gpl.html)
 " Name Of File: shim.vim
-" Version: 0.2
+" Version: 0.3
 " Description: GHCi integration for VIM
 " Requirements: VIM or gVIM with Ruby support, Ruby, and GHCi.
 " Installation: Copy this file into the plugin/ subdirectory of your vim
@@ -110,6 +110,7 @@ module VIM
 				(0...self.count).each { |i|
 					return self[i] if self[i].buffer.number == bufferNumber
 				}
+                return nil
 			end
 
 			def number(window)
@@ -196,9 +197,9 @@ class Ghci
 				VIM::command("cex " + text.inspect) unless text =~ /<interactive>/
 			end
 			
-			window.cursor = [ @buffer.count, @buffer[@buffer.count].length ]
+			window.cursor = [ @buffer.count, @buffer[@buffer.count].length ] unless window.nil?
 
-			if(@buffer.number != VIM::Window.current.buffer.number)
+			if(@buffer.number != VIM::Window.current.buffer.number && !window.nil?)
 				# switch to the ghci window and refresh it to
 				# make sure the new output is visible, then switch
 				# back unless we wanted to go there anyway
@@ -217,9 +218,9 @@ class Ghci
 			initGhciBuffer if @buffer.nil?
 
 			if(!@buffer.nil? && !@pipe.nil?)
-                                # if the input matches the prompt, it was typed
-                                # in the interpreter window and we don't need to
-                                # echo it; also remove it before passing it on to ghci
+                # if the input matches the prompt, it was typed
+                # in the interpreter window and we don't need to
+                # echo it; also remove it before passing it on to ghci
 				if(!(text =~ @ghciPrompt).nil?)
 					text.gsub!(@ghciPrompt, "")
 				else
@@ -228,7 +229,13 @@ class Ghci
 					}
 				end
 
-				@pipe.syswrite(text + "\n")
+                begin
+                    @pipe.syswrite(text + "\n")
+                rescue SystemCallError
+                    VIM::message("Restarting Ghci, write failed: " + $!)
+                    openGhci
+                    retry
+                end
 				readFromGhci
 			else
 				VIM::message("Ghci buffer or pipe isn't open!")
