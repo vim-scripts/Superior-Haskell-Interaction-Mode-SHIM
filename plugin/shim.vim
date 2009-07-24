@@ -1,10 +1,10 @@
 " Superior Haskell Interaction Mode (SHIM) {{{
-" ===============================================================================
+" ==============================================================================
 " Copyright: Lars Kotthoff <lars@larsko.org> 2008,2009
 "            Released under the terms of the GPLv3
 "            (http://www.gnu.org/copyleft/gpl.html)
 " Name Of File: shim.vim
-" Version: 0.3
+" Version: 0.3.1
 " Description: GHCi integration for VIM
 " Requirements: VIM or gVIM with Ruby support, Ruby, and GHCi.
 " Installation: Copy this file into the plugin/ subdirectory of your vim
@@ -34,6 +34,7 @@
 "        customize the following options:
 "
 "        g:shim_ghciInterp -- the name of the GHCi executable, default "ghci"
+"        g:shim_ghciArgs -- extra arguments passed to GHCi, default ""
 "        g:shim_ghciPrompt -- a regular expression matching the GHCi prompt
 "        g:shim_ghciTimeout -- the timeout for waiting for GHCi to return after
 "                              sending commands, default 10 seconds
@@ -64,7 +65,7 @@
 "
 "        GHCi is quit automatically when you quit VIM or destroy the "ghci"
 "        buffer.
-" ===============================================================================
+" ==============================================================================
 " }}}
 
 if has("ruby")
@@ -86,6 +87,9 @@ if !exists('g:shim_quickfix')
 endif
 if !exists('g:shim_defaultWindowSize')
     let g:shim_defaultWindowSize = 15
+endif
+if !exists('g:shim_ghciArgs')
+    let g:shim_ghciArgs = ""
 endif
 
 command! GhciReload ruby ghci.reloadGhci
@@ -129,6 +133,7 @@ require 'expect'
 class Ghci
 	def initialize
 		@ghciInterp = VIM::evaluate("g:shim_ghciInterp")
+		@ghciArgs = VIM::evaluate("g:shim_ghciArgs")
 		@ghciPrompt = Regexp.new(VIM::evaluate("g:shim_ghciPrompt"))
 		@ghciTimeout = VIM::evaluate("g:shim_ghciTimeout").to_i
 		@jumpToGhci = VIM::evaluate("g:shim_jumpToGhci") == "true" ? true : false
@@ -158,7 +163,7 @@ class Ghci
 
     def openGhci
 		# ghci writes some stuff to stderr...
-		@pipe = IO.popen(@ghciInterp + " 2>&1", File::RDWR)
+		@pipe = IO.popen(@ghciInterp + " " + @ghciArgs + " 2>&1", File::RDWR)
 		readFromGhci
     end
 
