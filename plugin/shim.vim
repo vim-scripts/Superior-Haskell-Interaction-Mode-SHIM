@@ -4,7 +4,7 @@
 "            Released under the terms of the GPLv3
 "            (http://www.gnu.org/copyleft/gpl.html)
 " Name Of File: shim.vim
-" Version: 0.3.1
+" Version: 0.3.2
 " Description: GHCi integration for VIM
 " Requirements: VIM or gVIM with Ruby support, Ruby, and GHCi.
 " Installation: Copy this file into the plugin/ subdirectory of your vim
@@ -157,6 +157,7 @@ class Ghci
 	end
 
 	def initGhciBuffer
+		@ghciArgs = VIM::evaluate("g:shim_ghciArgs")
 		setupWindow
         openGhci
 	end
