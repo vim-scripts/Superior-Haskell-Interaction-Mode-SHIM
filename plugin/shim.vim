@@ -4,23 +4,20 @@
 "            Released under the terms of the GPLv3
 "            (http://www.gnu.org/copyleft/gpl.html)
 " Name Of File: shim.vim
-" Version: 0.3.3
+" Version: 0.3.4
 " Description: GHCi integration for VIM
 " Requirements: VIM or gVIM with Ruby support, Ruby, and GHCi.
 " Installation: Copy this file into the plugin/ subdirectory of your vim
 "               installation -- /etc/vim/ for system-wide installation,
 "               .vim/ for user installation. Alternatively, you can manually
 "               source the file with ":source shim.vim".
-" Usage: The file exposes 4 commands, GhciFile, GhciRange, GhciReload, and
-"        GhciInit. The first takes no arguments and loads the current buffer
-"        into GHCi (":l <file>"). If autowrite is set and the buffer has been
-"        modified, the buffer is written before it is loaded. The second command
-"        takes a range as an argument and pastes these lines into GHCi without
-"        any interpretation. The third command kills GHCi, clears the ghci
-"        buffer, and restarts GHCi. Note that it doesn't reload any files. The
-"        fourth command sets up GHCi and the VIM buffer and window for it. You
-"        should never need to call this manually; it may be helpful to recover
-"        GHCi after something went wrong though.
+" Usage: The file exposes 3 commands, GhciFile, GhciRange, and GhciReload. The
+"        first takes no arguments and loads the current buffer into GHCi (":l
+"        <file>"). If autowrite is set and the buffer has been modified, the
+"        buffer is written before it is loaded. The second command takes a range
+"        as an argument and pastes these lines into GHCi without any
+"        interpretation. The third command kills GHCi, clears the ghci buffer,
+"        and restarts GHCi. Note that it doesn't reload any files.
 "
 "        You can bind these functions to key combinations for quicker access,
 "        e.g. put something like
@@ -77,7 +74,7 @@ if !exists('g:shim_ghciInterp')
     let g:shim_ghciInterp = "ghci"
 endif
 if !exists('g:shim_ghciPrompt')
-    let g:shim_ghciPrompt = "^[\*A-Z][A-Za-z\. ]+>"
+    let g:shim_ghciPrompt = "^[\*A-Z][A-Za-z0-9\. ]+>"
 endif
 if !exists('g:shim_ghciTimeout')
     let g:shim_ghciTimeout = 10
@@ -96,7 +93,6 @@ if !exists('g:shim_ghciArgs')
 endif
 
 command! GhciReload ruby ghci.reloadGhci
-command! GhciInit ruby ghci.initGhciBuffer
 command! GhciFile ruby ghci.ghciSourceFile
 command! -range GhciRange ruby ghci.writeRangeToGhci(<line1>, <line2>)
 
@@ -162,7 +158,7 @@ class Ghci
 
 	def initGhciBuffer
 		setupWindow
-                openGhci
+        openGhci
 	end
 
     def openGhci
