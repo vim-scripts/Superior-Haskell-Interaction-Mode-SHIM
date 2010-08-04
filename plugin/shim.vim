@@ -1,12 +1,13 @@
 " Superior Haskell Interaction Mode (SHIM) {{{
 " ==============================================================================
-" Copyright: Lars Kotthoff <lars@larsko.org> 2008,2009
+" Copyright: Lars Kotthoff <lars@larsko.org> 2008,2009, 2010
 "            Released under the terms of the GPLv3
 "            (http://www.gnu.org/copyleft/gpl.html)
 " Name Of File: shim.vim
-" Version: 0.3.4
+" Version: 0.3.5
 " Description: GHCi integration for VIM
-" Requirements: VIM or gVIM with Ruby support, Ruby, and GHCi.
+" Requirements: VIM or gVIM with Ruby support, Ruby with pty extension (Unix),
+"               and GHCi.
 " Installation: Copy this file into the plugin/ subdirectory of your vim
 "               installation -- /etc/vim/ for system-wide installation,
 "               .vim/ for user installation. Alternatively, you can manually
