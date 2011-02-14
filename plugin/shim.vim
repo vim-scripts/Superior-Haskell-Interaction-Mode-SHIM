@@ -1,10 +1,10 @@
 " Superior Haskell Interaction Mode (SHIM) {{{
 " ==============================================================================
-" Copyright: Lars Kotthoff <lars@larsko.org> 2008,2009, 2010
+" Copyright: Lars Kotthoff <lars@larsko.org> 2008, 2009, 2010, 2011
 "            Released under the terms of the GPLv3
 "            (http://www.gnu.org/copyleft/gpl.html)
 " Name Of File: shim.vim
-" Version: 0.3.5
+" Version: 0.3.6
 " Description: GHCi integration for VIM
 " Requirements: VIM or gVIM with Ruby support, Ruby with pty extension (Unix),
 "               and GHCi.
@@ -111,9 +111,9 @@ module VIM
 
 	class Window
 		class << self
-			def forBufferNumber(bufferNumber)
+			def forBufferName(bufferName)
 				(0...self.count).each { |i|
-					return self[i] if self[i].buffer.number == bufferNumber
+					return self[i] if self[i].buffer.name == bufferName
 				}
                 return nil
 			end
@@ -198,7 +198,7 @@ class Ghci
 			}
 
 			originatorWin = VIM::Window.current
-			window = VIM::Window.forBufferNumber(@buffer.number)
+			window = VIM::Window.forBufferName(@buffer.name)
 
 			if(@quickfix)
 				VIM::command("cex " + text.inspect) unless text =~ /<interactive>/
@@ -206,7 +206,7 @@ class Ghci
 			
 			window.cursor = [ @buffer.count, @buffer[@buffer.count].length ] unless window.nil?
 
-			if(@buffer.number != VIM::Window.current.buffer.number && !window.nil?)
+            if(!window.nil? && window != VIM::Window.current)
 				# switch to the ghci window and refresh it to
 				# make sure the new output is visible, then switch
 				# back unless we wanted to go there anyway
