@@ -1,10 +1,10 @@
 " Superior Haskell Interaction Mode (SHIM) {{{
 " ==============================================================================
-" Copyright: Lars Kotthoff <lars@larsko.org> 2008, 2009, 2010, 2011
+" Copyright: Lars Kotthoff <lars@larsko.org> 2008, 2009, 2010, 2011, 2013
 "            Released under the terms of the GPLv3
 "            (http://www.gnu.org/copyleft/gpl.html)
 " Name Of File: shim.vim
-" Version: 0.3.6
+" Version: 0.3.7
 " Description: GHCi integration for VIM
 " Requirements: VIM or gVIM with Ruby support, Ruby with pty extension (Unix),
 "               and GHCi.
@@ -93,9 +93,9 @@ if !exists('g:shim_ghciArgs')
     let g:shim_ghciArgs = ""
 endif
 
-command! GhciReload ruby ghci.reloadGhci
-command! GhciFile ruby ghci.ghciSourceFile
-command! -range GhciRange ruby ghci.writeRangeToGhci(<line1>, <line2>)
+command! GhciReload ruby $ghci.reloadGhci
+command! GhciFile ruby $ghci.ghciSourceFile
+command! -range GhciRange ruby $ghci.writeRangeToGhci(<line1>, <line2>)
 
 ruby << EOF
 module VIM
@@ -190,7 +190,7 @@ class Ghci
 	def readFromGhci
 		if(!@buffer.nil? && !@pipe.nil?)
 			output = @pipe.expect(@ghciPrompt, @ghciTimeout)
-			break if output.nil?
+			return if output.nil?
 			text = output.join("\n").strip + " "
 
 			text.split(/\r?\n/).each { |line|
@@ -265,10 +265,10 @@ class Ghci
 		writeToGhci(text.join("\n"))
 	end
 end
-ghci = Ghci.new
+$ghci = Ghci.new
 EOF
 
-autocmd BufDelete ghci ruby ghci.closeGhci
-autocmd VimLeavePre * ruby ghci.closeGhci
+autocmd BufDelete ghci ruby $ghci.closeGhci
+autocmd VimLeavePre * ruby $ghci.closeGhci
 
 endif
