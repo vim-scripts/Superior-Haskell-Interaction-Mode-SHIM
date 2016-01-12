@@ -96,6 +96,7 @@ endif
 command! GhciReload ruby $ghci.reloadGhci
 command! GhciFile ruby $ghci.ghciSourceFile
 command! -range GhciRange ruby $ghci.writeRangeToGhci(<line1>, <line2>)
+command! -range GhciSelection ruby $ghci.writeSelectionToGhci(<line1>, <line2>)
 
 ruby << EOF
 module VIM
@@ -263,6 +264,21 @@ class Ghci
 			text << VIM::Buffer.current[i]
 		}
 		writeToGhci(text.join("\n"))
+	end
+	
+	def writeSelectionToGhci(line1, line2)
+		col1 = VIM::evaluate("getpos(\"'<\")")[2].to_i
+		col2 = VIM::evaluate("getpos(\"'>\")")[2].to_i
+		text = []
+		last = ""
+		(line1..line2).each { |i|
+			last = VIM::Buffer.current[i]
+			text << last
+		}
+		txt = text.join("\n")
+		t_start = col1-1
+		t_end = -1 * (last.length - col2 + 1)
+		writeToGhci(txt[t_start..t_end])
 	end
 end
 $ghci = Ghci.new
