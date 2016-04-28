@@ -254,7 +254,7 @@ class Ghci
 		autowrite = VIM::evaluate("&autowrite")
 		modified = VIM::evaluate("&mod")
 		VIM::command("w") if((modified == "1") && (autowrite == "1"))
-		writeToGhci(":l " + VIM::Buffer.current.name)
+		writeToGhci(":l \"" + VIM::Buffer.current.name + "\"")
 	end
 
 	def writeRangeToGhci(line1, line2)
